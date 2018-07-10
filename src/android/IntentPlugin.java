@@ -140,6 +140,7 @@ public class IntentPlugin extends CordovaPlugin {
                         items[i].put("intent", item.getIntent());
                         items[i].put("text", item.getText());
                         items[i].put("uri", item.getUri());
+                        items[i].put("path", getRealPathFromURI(item.getUri()));
 
                         if(item.getUri() != null) {
                             String type = cR.getType(item.getUri());
@@ -248,5 +249,13 @@ public class IntentPlugin extends CordovaPlugin {
             context.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
             return false;
         }
+    }
+    
+    public String getRealPathFromURI(Uri contentUri) {
+        String[] proj = { MediaStore.Images.Media.DATA };
+        Cursor cursor = this.cordova.getActivity().getApplicationContext().getContentResolver().query(contentUri, proj, null, null, null);
+        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        cursor.moveToFirst();
+        return cursor.getString(column_index);
     }
 }
