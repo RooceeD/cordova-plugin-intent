@@ -140,7 +140,7 @@ public class IntentPlugin extends CordovaPlugin {
                         items[i].put("intent", item.getIntent());
                         items[i].put("text", item.getText());
                         items[i].put("uri", item.getUri());
-                        items[i].put("path", getRealPathFromURI(item.getUri()));
+                        items[i].put("path", getFilePathFromURI(item.getUri()));
 
                         if(item.getUri() != null) {
                             String type = cR.getType(item.getUri());
@@ -257,5 +257,42 @@ public class IntentPlugin extends CordovaPlugin {
         int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
         cursor.moveToFirst();
         return cursor.getString(column_index);
+    }
+    
+    public static String getFilePathFromURI(Uri contentUri) {
+        Context context = this.cordova.getActivity().getApplicationContext();
+        String fileName = getFileName(contentUri);
+        
+        if (!TextUtils.isEmpty(fileName)) {
+            File dstFile = new File(context.getExternalFilesDir() + File.separator + fileName);
+            copy(contentUri, copyFile);
+            
+            try {
+                InputStream inputStream = context.getContentResolver().openInputStream(contentUri);
+                if (inputStream == null) return;
+                OutputStream outputStream = new FileOutputStream(dstFile);
+                IOUtils.copy(inputStream, outputStream);
+                inputStream.close();
+                outputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return "";
+            }
+            
+            
+            return dstFile.getAbsolutePath();
+        }
+        return "";
+    }
+
+    public static String getFileName(Uri uri) {
+        if (uri == null) return null;
+        String fileName = null;
+        String path = uri.getPath();
+        int cut = path.lastIndexOf('/');
+        if (cut != -1) {
+            fileName = path.substring(cut + 1);
+        }
+        return fileName;
     }
 }
