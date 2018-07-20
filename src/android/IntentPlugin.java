@@ -32,7 +32,6 @@ import java.io.OutputStream;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
-import org.apache.commons.io.IOUtils;
 
 
 public class IntentPlugin extends CordovaPlugin {
@@ -278,14 +277,19 @@ public class IntentPlugin extends CordovaPlugin {
                 InputStream inputStream = context.getContentResolver().openInputStream(contentUri);
                 if (inputStream == null) return "";
                 OutputStream outputStream = new FileOutputStream(dstFile);
-                IOUtils.copy(inputStream, outputStream);
+                
+                byte[] buffer = new byte[8 * 1024];
+                int len;
+                while ((len = inputStream.read(buffer)) > 0) {
+                    outputStream.write(buffer, 0, len);
+                }
+                
                 inputStream.close();
                 outputStream.close();
             } catch (IOException e) {
                 e.printStackTrace();
                 return "";
             }
-            
             
             return dstFile.getAbsolutePath();
         }
