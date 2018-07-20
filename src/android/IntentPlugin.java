@@ -21,10 +21,18 @@ import android.net.Uri;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.webkit.MimeTypeMap;
+import android.text.TextUtils;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
+import org.apache.commons.io.IOUtils;
 
 
 public class IntentPlugin extends CordovaPlugin {
@@ -259,17 +267,16 @@ public class IntentPlugin extends CordovaPlugin {
         return cursor.getString(column_index);
     }
     
-    public static String getFilePathFromURI(Uri contentUri) {
+    public String getFilePathFromURI(Uri contentUri) {
         Context context = this.cordova.getActivity().getApplicationContext();
         String fileName = getFileName(contentUri);
         
         if (!TextUtils.isEmpty(fileName)) {
-            File dstFile = new File(context.getExternalFilesDir() + File.separator + fileName);
-            copy(contentUri, copyFile);
+            File dstFile = new File(context.getExternalCacheDir() + File.separator + fileName);
             
             try {
                 InputStream inputStream = context.getContentResolver().openInputStream(contentUri);
-                if (inputStream == null) return;
+                if (inputStream == null) return "";
                 OutputStream outputStream = new FileOutputStream(dstFile);
                 IOUtils.copy(inputStream, outputStream);
                 inputStream.close();
@@ -285,7 +292,7 @@ public class IntentPlugin extends CordovaPlugin {
         return "";
     }
 
-    public static String getFileName(Uri uri) {
+    public String getFileName(Uri uri) {
         if (uri == null) return null;
         String fileName = null;
         String path = uri.getPath();
